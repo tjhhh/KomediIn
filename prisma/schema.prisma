@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+// Define database connection via the `DATABASE_URL` env var
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Define custom output path for generated Prisma Client
+generator client {
+  provider = "prisma-client-js"
+  output   = "/app/generated/prisma-client"
+}
+
+enum RoleUser{
+  admin
+  customer
+}
+
+enum TypeSeat{
+  Economy
+  Premium
+  Sultan
+}
+
+enum StatusTransaction{
+  pending
+  success 
+  failed
+}
+
+model User{
+  id       String @id @default(cuid())
+  name     String
+  email    String @unique
+  password String
+  nik      String?
+  age      String
+  role     RoleUser
+  tickets  Ticket[]
+}
+
+model Stage{
+  id        String @id @default(cuid())
+  name      String
+  code      String @default("ABC-123")
+  image     String
+  show      Show[]
+}
+
+
+model Show{
+  id        String @id @default(cuid())
+  title     String
+  stageId   String
+  stage     Stage @relation(fields: [stageId], references: [id])
+  date      DateTime
+  comedians String
+  price     int
+  seats     ShowSeat[]
+  tickets   Ticket[]
+}
+
+model ShowSeat{
+  id        String @id @default(cuid())
+  showId    String
+  show      Show @relation(fields: [showId], references: [id])
+  seatNumber  String @default("E-1")
+  isBooked  Boolean? @default(false)
+  type      TypeSeat
+}
+
+model ticket{
+  id        String @id @default(cuid())
+  code      String @unique
+  showId    String
+  show      Show @relation(fields: [showId], references: [id])
+  seatId    String @unique
+  seat      ShowSeat @relation(fields: [seatId], references: [id])
+  customerId  String
+  customer  User @relation(fields: [customerId], references: [id])
+  bookingDate DateTime
+  price     int
+  status    StatusTransaction
+  tokenMidtrans String
+}
+
